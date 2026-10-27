@@ -639,4 +639,24 @@ body.easy .omr .nm{flex:none}
 .sw-cell.none .sw-v{color:#5D6A7C}
 .omr .ostat{font-size:12.5px;color:var(--label)}
 .ostb{background:none;border:0;padding:0;color:var(--cyan);cursor:pointer;font:inherit;text-decoration:underline;text-underline-offset:2px}
+
+/* ---------- patch notes ---------- */
+.ptl{margin-top:12px;display:flex;flex-direction:column;gap:14px}
+.pday{border-left:3px solid var(--line);padding-left:14px;scroll-margin-top:70px}
+.pday.focus{border-left-color:var(--link)}
+.pday h3{font-size:16px;color:var(--title);font-weight:700;margin:0 0 8px}
+.pday .pd-wd{color:var(--faint);font-size:13px;font-weight:400}
+.pcard{border:1px solid var(--line);border-radius:6px;background:var(--panel);padding:12px 16px;margin-bottom:8px}
+.pc-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px;font-size:12px;color:var(--faint)}
+.pc-tag{border-radius:999px;padding:0 8px;font-size:11.5px;font-weight:700;color:#000}
+.pc-new{background:#7EDB5A}.pc-balance{background:#F2C14E}.pc-bug{background:#FF8A80}.pc-system{background:#8FD3FF}.pc-map{background:#C08CFF}.pc-etc{background:#B0B0B0}
+.pc-body{font-size:14.5px;line-height:1.7;color:var(--text)}
+.pc-body h4{margin:10px 0 2px;font-size:14.5px;color:var(--link)}
+.pc-body h4:first-child{margin-top:0}
+.pc-body p{margin:2px 0}
+.pc-body h5{margin:8px 0 0;font-size:13.5px;color:var(--title);font-weight:700}
+.pc-body ul{margin:2px 0;padding-left:20px}
+.pc-body a{color:var(--cyan)}
+.pt-tbl{margin:6px 0}
+.pt-tbl .dt{font-size:13.5px}
 @media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
