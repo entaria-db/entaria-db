@@ -602,6 +602,14 @@ body.easy .mr.er.sel{outline:2px solid var(--link)}
 .npcs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
 .npcs span{border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:13.5px;color:#A9B8FF}
 .npcs .orig{display:inline;margin-left:4px}
+.mimg{width:36px;height:36px;object-fit:contain;flex:none;image-rendering:auto}
+.mcell{display:flex;align-items:center;gap:8px}
+.mnone{display:inline-flex;align-items:center;justify-content:center;border:1px dashed var(--line);border-radius:6px;color:var(--label);font-size:13px}
+.mimg-s{width:20px;height:20px;object-fit:contain;vertical-align:middle;margin-right:4px}
+.mstrip{position:absolute;left:50%;bottom:100%;transform:translate(-50%,-4px);display:flex;gap:2px;padding:3px 5px;background:rgba(0,0,0,.78);border:1px solid #F5C518;border-radius:6px;pointer-events:none;white-space:nowrap}
+.mstrip .mimg{width:28px;height:28px}
+.hot:hover .mstrip{display:none}
+@media (max-width:600px){.mstrip .mimg{width:20px;height:20px}}
 .mobt{width:100%;border-collapse:collapse;font-size:14px}
 .mobt th,.mobt td{padding:5px 6px;text-align:left;border-top:1px solid var(--div);vertical-align:top}
 .mobt th{font-size:12px;color:var(--label);font-weight:500}
