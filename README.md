@@ -9,7 +9,7 @@
 |---|---|
 | `index.html` | 첫 화면. 보안 정책(CSP) 포함 |
 | `assets/app.js` | 데이터(룬워드·룬·큐브·아이템·지도)와 화면 로직, 5개 언어 번역 |
-| `assets/icons.js` | 아이템·룬·장비 아이콘 묶음 (약 1,900개) |
+| `assets/icons.js` | 아이템·룬·장비·몬스터 아이콘 묶음 (약 1,900개) |
 | `assets/style.css` | 스타일 |
 | `assets/map.webp` | 대륙 지도 |
 | `_headers` | Cloudflare Pages용 보안 헤더 (GitHub Pages는 무시해도 됨) |
@@ -29,6 +29,7 @@
 - 룬워드·룬·큐브 데이터: 게임 내 툴팁과 공식 다국어 룬워드 자료
 - 원석·보석·포션·화살 아이콘과 장비 데이터: 원작 메이플스토리 GMS v83 WZ 공개 덤프
   (github.com/andrenogrib/gms_v83_wztoweb)
+- 몬스터 이미지: 같은 GMS v83 공개 덤프의 Mob 이미지 (엔타리아 고유 몬스터는 이미지 없음)
 - 장비 한국어 이름: 메이플랜드 DB 공개 저장소 (github.com/JooYoung1121/maple_db)
 - 장비 중국어 이름: TMS v62 문자열 (간체는 자동 변환), 일본어는 영어 이름 표시
 - 장비 데이터는 원작 기준이라 엔타리아 실제 능력치·드랍과 다를 수 있습니다.
