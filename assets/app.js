@@ -289,7 +289,7 @@ function applyLang(){
   document.documentElement.lang = LANG;
   loadFont(LANG);
   document.getElementById('footL').textContent = t('footDisclaimer');
-  document.getElementById('footR').textContent = t('footVersion') + ' · build 20261028-1447';
+  document.getElementById('footR').textContent = t('footVersion') + ' · build 20261028-1528';
   document.getElementById('footC').textContent = t('footCredit');
   document.querySelector('meta[name="description"]').setAttribute('content', t('metaDesc'));
 }
@@ -1367,8 +1367,8 @@ function fieldLv(f){ var l = f.mobs.map(function(m){ return m[1]; }); return [Ma
 function placeById(id){ return TOWNS.filter(function(x){ return x.id === id; })[0] || FIELDS.filter(function(x){ return x.id === id; })[0]; }
 function placeTip(p){
   var isTown = !!p.info;
-  var lines = isTown ? (p.npcs || []).map(function(n){ return '<span class="npc">'+trName(n)+'</span>'; })
-                     : p.mobs.map(function(m){ return '<span class="mob">'+mobIcon(m[0],'mimg-s')+trName(m[0])+'(Lv.'+m[1]+')</span>'; });
+  /* 사냥터는 이름만 표시 (몬스터 목록은 오른쪽 패널에서 확인) */
+  var lines = isTown ? (p.npcs || []).map(function(n){ return '<span class="npc">'+trName(n)+'</span>'; }) : [];
   return '<span class="mtip"><b>'+esc(tt(p.name))+'</b>'+lines.join('')+'</span>';
 }
 function renderMap(townId, edit){
