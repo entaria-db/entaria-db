@@ -1,13 +1,13 @@
 # ENTARIA DB
 
 메이플스토리 월드 **엔타리아** 비공식 팬 데이터베이스입니다.
-서버·DB·로그인 없이 정적 파일만으로 동작하며, GitHub Pages로 배포합니다.
+사이트 화면은 정적 파일로 GitHub Pages에서 배포하고, 커뮤니티 게시판 글만 외부 DB(Supabase)에 저장합니다. 방문자 로그인은 없고, 운영자만 게시판 관리용으로 로그인합니다.
 
 ## 파일 구성
 
 | 경로 | 내용 |
 |---|---|
-| `index.html` | 첫 화면. 보안 정책(CSP) 포함 |
+| `index.html` | 첫 화면. 보안 정책(CSP) 포함 (외부 연결은 게시판 서버 하나만 허용) |
 | `assets/app.js` | 데이터(룬워드·룬·큐브·지도)와 화면 로직, 한국어 문구 |
 | `assets/icons.js` | 아이템·룬·몬스터 아이콘 묶음 |
 | `assets/eq-data.js` | 장비 데이터 (아이템·검색·패치 내역 화면에서 불러옴) |
@@ -15,7 +15,7 @@
 | `assets/i18n-*.js` | 영어·일본어·중국어 번역 (언어를 고를 때 불러옴) |
 | `assets/style.css` | 스타일 |
 | `assets/map.webp` | 대륙 지도 |
-| `_headers` | Cloudflare Pages용 보안 헤더 (GitHub Pages는 무시해도 됨) |
+| `_headers` | Cloudflare Pages·Netlify용 보안 헤더. 빌드가 index.html의 보안 정책과 같게 자동으로 만듦 (GitHub Pages는 무시) |
 | `robots.txt` | 검색엔진 수집 허용 |
 | `.nojekyll` | GitHub Pages가 파일을 가공 없이 그대로 배포하도록 함 |
 
@@ -33,7 +33,8 @@
 - 룬워드·룬·큐브 데이터: 게임 내 툴팁과 공식 다국어 룬워드 자료
 - 원석·보석·포션·화살 아이콘과 장비 데이터: 원작 메이플스토리 GMS v83 WZ 공개 덤프
   (github.com/andrenogrib/gms_v83_wztoweb)
-- 몬스터 이미지: 같은 GMS v83 공개 덤프의 Mob 이미지 (엔타리아 고유 몬스터는 이미지 없음)
+- 몬스터 이미지: 같은 GMS v83 공개 덤프의 Mob 이미지, 한국 메이플스토리 DB API, 엔타리아 고유 몬스터는 게임 화면에서 잘라냄
+- 몬스터 능력치·드랍: 게임 내 "현재 맵 몬스터" 창 캡처
 - 장비 한국어 이름: 메이플랜드 DB 공개 저장소 (github.com/JooYoung1121/maple_db)
 - 장비 중국어 이름: TMS v62 문자열 (간체는 자동 변환), 일본어는 영어 이름 표시
 - 장비 데이터는 원작 기준이라 엔타리아 실제 능력치·드랍과 다를 수 있습니다.
