@@ -1,0 +1,147 @@
+# 실제 사이트 배포 (이 파일은 사이트 저장소 entaria-db 의 .github/workflows/ 에 둔다. 원본은 소스 키트의 site_repo/entaria-db/)
+#  - 사용자가 Actions 화면에서 직접 실행해야만 시작한다 (올리기만으로는 실행되지 않음)
+#  - 1단계 '빌드·검사': 비공개 소스 저장소의 main 최신 커밋을 받아 빌드하고 검사한 뒤, 무엇이 바뀌는지 요약을 보여 준다
+#  - 2단계 '배포': 사용자가 승인해야 시작한다. 1단계가 만든 결과물을 이 저장소 main 에 커밋한다 (이 저장소 자체 권한만 사용, 쓰기용 키 없음)
+#  - 이 저장소는 공개라 실행 기록도 공개된다. 소스 저장소의 파일 이름·내용이 기록에 남지 않게 빌드 출력은 숨기고 숫자만 보여 준다
+# 필요한 설정 (Settings → Environments)
+#  - build      : Deployment branches = main 만. Secret SOURCE_READ_KEY (소스 저장소 읽기 전용 배포 키의 개인 키)
+#  - production : Deployment branches = main 만. Required reviewers = 사용자 본인
+name: 실제 사이트 배포
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-site
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: 빌드·검사
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: build
+    outputs:
+      build: ${{ steps.build.outputs.build }}
+      src: ${{ steps.build.outputs.src }}
+      base: ${{ steps.build.outputs.base }}
+    steps:
+      - name: 사이트 저장소 받기
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683   # v4.2.2
+        with:
+          path: site
+
+      - name: 소스 받기 (main 최신 커밋)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683   # v4.2.2
+        with:
+          repository: entaria-db/entaria-src-kit
+          ref: main
+          ssh-key: ${{ secrets.SOURCE_READ_KEY }}
+          path: src
+          fetch-depth: 200          # main 한 갈래만 받음 (다른 브랜치 이름이 공개 기록에 나오지 않게). 새 커밋 수를 세는 데 씀
+          persist-credentials: false
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065   # v5.6.0
+        with:
+          python-version: '3.12'
+
+      - name: 패키지 설치
+        run: pip install -q opencc-python-reimplemented rjsmin rcssmin pillow
+
+      - name: 빌드 (출력은 기록에 남기지 않음)
+        id: build
+        env:
+          PYTHONUTF8: '1'
+          ENTARIA_BRANCH: main
+        run: |
+          export ENTARIA_SITE="$GITHUB_WORKSPACE/site"
+          base=$(git -C site rev-parse HEAD)
+          if ! (cd src && python build.py) > "$RUNNER_TEMP/build.log" 2>&1; then
+            echo "::error::빌드 실패. 자세한 내용은 공개 기록에 남기지 않습니다. 소스 저장소의 '테스트 사이트 배포' 기록이나 집 PC에서 확인하세요."
+            exit 1
+          fi
+          build=$(sed -n 's/^built \([0-9-]*\) .*/\1/p' "$RUNNER_TEMP/build.log")
+          synced=$(sed -n 's/^synced \([0-9]*\) files .* removed \([0-9]*\)$/\1개 동기화, \2개 삭제/p' "$RUNNER_TEMP/build.log")
+          if [ -z "$build" ] || [ -z "$synced" ]; then echo "::error::빌드 또는 동기화가 끝나지 않음"; exit 1; fi
+          src=$(git -C src rev-parse --short HEAD)
+          echo "build=$build" >> "$GITHUB_OUTPUT"; echo "src=$src" >> "$GITHUB_OUTPUT"; echo "base=$base" >> "$GITHUB_OUTPUT"
+          echo "SYNCED=$synced" >> "$GITHUB_ENV"
+
+      - name: 검사 (제재 문구 없음, 테스트 표시 없음)
+        working-directory: site
+        run: |
+          # release.py 와 같은 개인 정보 검사 + 테스트 빌드가 섞이지 않았는지. 하나라도 틀리면 배포하지 않는다
+          n=$( (grep -rlE "제재 내역|이용 정지" . --include=*.js --include=*.html --exclude-dir=.git || true) | wc -l)
+          if [ "$n" != "0" ]; then echo "::error::제재 명단 문구가 남은 파일이 $n개 있음"; exit 1; fi
+          if grep -q 'noindex' index.html; then echo "::error::검색엔진 차단 표시가 들어 있음 (테스트 빌드)"; exit 1; fi
+          if grep -q '테스트 사이트입니다' index.html; then echo "::error::테스트 사이트 띠가 들어 있음 (테스트 빌드)"; exit 1; fi
+          if grep -q '<title>\[TEST\]' index.html; then echo "::error::제목에 [TEST]가 들어 있음 (테스트 빌드)"; exit 1; fi
+          test -d .github/workflows || { echo "::error::.github 폴더가 사라짐"; exit 1; }
+          echo "검사 통과"
+
+      - name: 무엇이 배포되는지 요약
+        run: |
+          # 소스 저장소의 커밋 메시지·파일 이름은 적지 않는다 (커밋 번호와 개수만). 아래 파일 목록은 공개되는 사이트 파일이다
+          prev=$(git -C site log -1 --format=%s | sed -n 's/.*소스 \([0-9a-f]\{7,\}\).*/\1/p')
+          count="?"
+          if [ -n "$prev" ] && git -C src cat-file -e "$prev^{commit}" 2>/dev/null; then count=$(git -C src rev-list --count "$prev..HEAD"); fi
+          git -C site add -A
+          {
+            echo "## 배포 예정"
+            echo "- 빌드 번호: ${{ steps.build.outputs.build }}"
+            echo "- 소스 커밋: ${{ steps.build.outputs.src }} (지난 자동 배포 뒤 새 커밋 ${count}개)"
+            echo "- 사이트 파일: $SYNCED"
+            echo ""
+            echo "### 바뀌는 사이트 파일"
+            echo '```'
+            git -C site diff --cached --stat | tail -40
+            echo '```'
+            echo "승인하면 '배포' 단계가 이 내용을 main 에 커밋합니다. 바뀌는 파일이 없으면 커밋하지 않습니다."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 결과물 묶기
+        run: tar -C site --exclude=./.git --exclude=./.github -czf "$RUNNER_TEMP/site.tgz" .   # 작업 파일(.github)은 묶지 않음: 배포 단계가 바꿀 수 없게
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02   # v4.6.2
+        with:
+          name: site
+          path: ${{ runner.temp }}/site.tgz
+          retention-days: 1
+
+  deploy:
+    name: 배포 (승인 필요)
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683   # v4.2.2
+
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093   # v4.3.0
+        with:
+          name: site
+          path: ${{ runner.temp }}
+
+      - name: 커밋하고 올리기
+        run: |
+          # 승인을 기다리는 사이 집 PC가 먼저 배포했으면 그만둠 (새 배포를 예전 내용으로 되돌리지 않게)
+          if [ "$(git rev-parse HEAD)" != "${{ needs.build.outputs.base }}" ]; then
+            echo "::error::빌드한 뒤 사이트 저장소에 새 커밋이 생겼습니다. 다시 실행하세요."; exit 1
+          fi
+          find . -mindepth 1 -maxdepth 1 ! -name .git ! -name .github ! -name CNAME -exec rm -rf {} +
+          tar -xzf "$RUNNER_TEMP/site.tgz" -C .
+          git config user.name "Entaria DB"
+          git config user.email "entaria-db@localhost"
+          git add -A
+          if git diff --cached --quiet; then echo "바뀐 파일 없음 → 커밋하지 않음" >> "$GITHUB_STEP_SUMMARY"; exit 0; fi
+          b="${{ needs.build.outputs.build }}"
+          git commit -q -m "사이트 v${b:2:2}.${b:4:2} 배포 (빌드 $b, 소스 ${{ needs.build.outputs.src }}, 자동)"
+          git push origin HEAD:main
+          echo "배포 완료: 빌드 $b → 1~2분 뒤 https://entaria-db.github.io/entaria-db/ 하단 빌드 번호 확인" >> "$GITHUB_STEP_SUMMARY"
